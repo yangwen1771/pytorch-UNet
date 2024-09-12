@@ -1,16 +1,18 @@
+#分别写出三大块：卷积，上采样，下采样
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 class Conv_Block(nn.Module):
-    def __init__(self,in_channel,out_channel):
+    def __init__(self,in_channel,out_channel):                             #每次的输入输出通道数不同，故不能写死
         super(Conv_Block, self).__init__()
         self.layer=nn.Sequential(
-            nn.Conv2d(in_channel,out_channel,3,1,1,padding_mode='reflect',bias=False),
+            nn.Conv2d(in_channel,out_channel,3,1,1,padding_mode='reflect',bias=False),                #reflect保证整张图都是有特征的，加强特征提取的能力
             nn.BatchNorm2d(out_channel),
             nn.Dropout2d(0.3),
             nn.LeakyReLU(),
-            nn.Conv2d(out_channel, out_channel, 3, 1, 1, padding_mode='reflect', bias=False),
+            nn.Conv2d(out_channel, out_channel, 3, 1, 1, padding_mode='reflect', bias=False),         #注意是 out_channel, out_channel,
             nn.BatchNorm2d(out_channel),
             nn.Dropout2d(0.3),
             nn.LeakyReLU()
