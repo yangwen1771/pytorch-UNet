@@ -27,6 +27,8 @@ class MyDataset(Dataset):
         image = keep_image_size_open_rgb(image_path)
         return transform(image), torch.Tensor(np.array(segment_image))                           #要用到某个工具时就导入对应工具包或者自建工具 #将图片归一化？转换为tensor
 
+# utils导入报错的，需要在左侧树目录右键"new_unet"文件夹，然后点击“Make Directory as"→”Excluded"，再等一会就可以了
+
 
 if __name__ == '__main__':                                          #验证一下是否正确
     from torch.nn.functional import one_hot
