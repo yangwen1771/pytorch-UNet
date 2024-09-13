@@ -22,7 +22,7 @@ class Conv_Block(nn.Module):
 
 
 class DownSample(nn.Module):
-    def __init__(self,channel):
+    def __init__(self,channel):                      #采样这一步不改变通道数，只改变h,w,所以out_channel = in_channel
         super(DownSample, self).__init__()
         self.layer=nn.Sequential(
             nn.Conv2d(channel,channel,3,2,1,padding_mode='reflect',bias=False),
@@ -36,15 +36,15 @@ class DownSample(nn.Module):
 class UpSample(nn.Module):
     def __init__(self,channel):
         super(UpSample, self).__init__()
-        self.layer=nn.Conv2d(channel,channel//2,1,1)
+        self.layer=nn.Conv2d(channel,channel//2,1,1)             #1*1卷积不进行特征提取，只是降通道
     def forward(self,x,feature_map):
-        up=F.interpolate(x,scale_factor=2,mode='nearest')
+        up=F.interpolate(x,scale_factor=2,mode='nearest')        #最近邻插值
         out=self.layer(up)
-        return torch.cat((out,feature_map),dim=1)
+        return torch.cat((out,feature_map),dim=1)                #结构为N，C，H，W，返回第1维，N是一个Batch中的第几张图
 
 
 class UNet(nn.Module):
-    def __init__(self,num_classes):
+    def __init__(self):
         super(UNet, self).__init__()
         self.c1=Conv_Block(3,64)
         self.d1=DownSample(64)
@@ -63,7 +63,8 @@ class UNet(nn.Module):
         self.c8 = Conv_Block(256, 128)
         self.u4 = UpSample(128)
         self.c9 = Conv_Block(128, 64)
-        self.out=nn.Conv2d(64,num_classes,3,1,1)
+        self.out=nn.Conv2d(64,3,3,1,1)             #输出彩色图片，故三通道
+        self.Th=nn.Sigmoid()                       #本质上是二分类，只分为无颜色和有颜色
 
     def forward(self,x):
         R1=self.c1(x)
@@ -76,7 +77,7 @@ class UNet(nn.Module):
         O3 = self.c8(self.u3(O2, R2))
         O4 = self.c9(self.u4(O3, R1))
 
-        return self.out(O4)
+        return self.Th(self.out(O4))
 
 if __name__ == '__main__':
     x=torch.randn(2,3,256,256)
